@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Vonnegut's Asterisk vs Corn Flakes - Mobile</title>
+    <title>Vonnegut's Asterisk vs Corn Flakes - With Power-ups</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <style>
         body, html {
@@ -10,20 +10,55 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
+            font-family: Arial, sans-serif;
         }
         canvas {
             display: block;
             touch-action: none;
         }
+        #score, #powerUpStatus {
+            position: absolute;
+            color: white;
+            font-size: 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+        #score { top: 10px; left: 10px; }
+        #powerUpStatus { top: 10px; right: 10px; }
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+        }
     </style>
 </head>
 <body>
     <canvas id="gameCanvas"></canvas>
+    <div id="score">Score: 0</div>
+    <div id="powerUpStatus"></div>
+    <div id="gameOver">
+        <h2>Game Over</h2>
+        <p>Your score: <span id="finalScore"></span></p>
+        <p><em>"So it goes."</em></p>
+        <button id="restartButton">Play Again</button>
+    </div>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const powerUpStatusElement = document.getElementById('powerUpStatus');
+        const gameOverElement = document.getElementById('gameOver');
+        const finalScoreElement = document.getElementById('finalScore');
+        const restartButton = document.getElementById('restartButton');
 
-        // Set canvas size to window size
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
@@ -31,7 +66,6 @@
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
 
-        // Player (Vonnegut's Asterisk)
         let player = {
             x: canvas.width / 2,
             y: canvas.height / 2,
@@ -39,19 +73,31 @@
             speed: 5
         };
 
-        // Corn Flake enemy
         let enemy = {
             x: 100,
             y: 100,
             size: 15,
-            speed: 2
+            speed: 2,
+            isNeutralized: false
         };
 
-        // Touch control
-        let touchX, touchY;
+        let powerUp = {
+            x: 0,
+            y: 0,
+            size: 15,
+            isActive: false
+        };
 
-        // Game loop
+        let touchX, touchY;
+        let score = 0;
+        let lastScoreIncrement = Date.now();
+        let gameActive = true;
+        let powerUpTimer = 0;
+        let powerUpDuration = 5000; // 5 seconds
+
         function gameLoop() {
+            if (!gameActive) return;
+
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             // Draw player (asterisk)
@@ -67,8 +113,22 @@
             // Draw enemy (corn flake)
             ctx.beginPath();
             ctx.arc(enemy.x, enemy.y, enemy.size, 0, 2 * Math.PI);
-            ctx.fillStyle = 'yellow';
+            ctx.fillStyle = enemy.isNeutralized ? 'gray' : 'yellow';
             ctx.fill();
+
+            // Draw power-up (peace symbol)
+            if (powerUp.isActive) {
+                ctx.beginPath();
+                ctx.arc(powerUp.x, powerUp.y, powerUp.size, 0, 2 * Math.PI);
+                ctx.moveTo(powerUp.x, powerUp.y - powerUp.size);
+                ctx.lineTo(powerUp.x, powerUp.y + powerUp.size);
+                ctx.moveTo(powerUp.x, powerUp.y);
+                ctx.lineTo(powerUp.x - powerUp.size * 0.866, powerUp.y + powerUp.size * 0.5);
+                ctx.moveTo(powerUp.x, powerUp.y);
+                ctx.lineTo(powerUp.x + powerUp.size * 0.866, powerUp.y + powerUp.size * 0.5);
+                ctx.strokeStyle = 'green';
+                ctx.stroke();
+            }
 
             // Move player towards touch point
             if (touchX !== undefined && touchY !== undefined) {
@@ -81,24 +141,91 @@
                 }
             }
 
-            // Move enemy towards player
-            let dx = player.x - enemy.x;
-            let dy = player.y - enemy.y;
-            let distance = Math.sqrt(dx * dx + dy * dy);
-            enemy.x += (dx / distance) * enemy.speed;
-            enemy.y += (dy / distance) * enemy.speed;
+            // Move enemy towards player if not neutralized
+            if (!enemy.isNeutralized) {
+                let dx = player.x - enemy.x;
+                let dy = player.y - enemy.y;
+                let distance = Math.sqrt(dx * dx + dy * dy);
+                enemy.x += (dx / distance) * enemy.speed;
+                enemy.y += (dy / distance) * enemy.speed;
 
-            // Check collision
-            if (distance < player.size + enemy.size) {
-                alert('Game Over! Corn Flake caught you!');
-                enemy.x = Math.random() * canvas.width;
-                enemy.y = Math.random() * canvas.height;
+                // Check collision with enemy
+                if (distance < player.size + enemy.size) {
+                    gameOver();
+                }
+            }
+
+            // Check collision with power-up
+            if (powerUp.isActive) {
+                let dx = player.x - powerUp.x;
+                let dy = player.y - powerUp.y;
+                let distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < player.size + powerUp.size) {
+                    activatePowerUp();
+                }
+            }
+
+            // Update power-up timer
+            if (enemy.isNeutralized) {
+                powerUpTimer -= 16; // Assuming 60 FPS
+                if (powerUpTimer <= 0) {
+                    enemy.isNeutralized = false;
+                    powerUpStatusElement.textContent = '';
+                }
+                else {
+                    powerUpStatusElement.textContent = `Peace: ${Math.ceil(powerUpTimer / 1000)}s`;
+                }
+            }
+
+            // Spawn new power-up
+            if (!powerUp.isActive && Math.random() < 0.001) { // 0.1% chance per frame
+                spawnPowerUp();
+            }
+
+            // Update score
+            if (Date.now() - lastScoreIncrement > 1000) {
+                score++;
+                lastScoreIncrement = Date.now();
+                scoreElement.textContent = 'Score: ' + score;
             }
 
             requestAnimationFrame(gameLoop);
         }
 
-        // Handle touch events
+        function spawnPowerUp() {
+            powerUp.x = Math.random() * canvas.width;
+            powerUp.y = Math.random() * canvas.height;
+            powerUp.isActive = true;
+        }
+
+        function activatePowerUp() {
+            enemy.isNeutralized = true;
+            powerUp.isActive = false;
+            powerUpTimer = powerUpDuration;
+        }
+
+        function gameOver() {
+            gameActive = false;
+            finalScoreElement.textContent = score;
+            gameOverElement.style.display = 'block';
+        }
+
+        function restartGame() {
+            score = 0;
+            scoreElement.textContent = 'Score: 0';
+            powerUpStatusElement.textContent = '';
+            player.x = canvas.width / 2;
+            player.y = canvas.height / 2;
+            enemy.x = Math.random() * canvas.width;
+            enemy.y = Math.random() * canvas.height;
+            enemy.isNeutralized = false;
+            powerUp.isActive = false;
+            lastScoreIncrement = Date.now();
+            gameOverElement.style.display = 'none';
+            gameActive = true;
+            gameLoop();
+        }
+
         canvas.addEventListener('touchstart', handleTouch, false);
         canvas.addEventListener('touchmove', handleTouch, false);
         canvas.addEventListener('touchend', function() {
@@ -112,7 +239,8 @@
             touchY = e.touches[0].clientY;
         }
 
-        // Start the game
+        restartButton.addEventListener('click', restartGame);
+
         gameLoop();
     </script>
 </body>
