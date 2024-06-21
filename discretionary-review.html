@@ -1,4 +1,68 @@
-house);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discretionary Review: The Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            touch-action: manipulation;
+        }
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .house {
+            width: 100px;
+            height: 100px;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 50px;
+            cursor: pointer;
+            user-select: none;
+        }
+        #message {
+            margin-top: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            color: #ff0000;
+        }
+    </style>
+</head>
+<body>
+    <h1>Discretionary Review: The Game</h1>
+    <div id="game-board"></div>
+    <div id="message"></div>
+
+    <script>
+        const gameBoard = document.getElementById('game-board');
+        const messageElement = document.getElementById('message');
+        const houses = [];
+        const HOUSE = '🏡';
+        const APARTMENT = '🏢';
+        const OLD_HOUSE = '🏚️';
+        const HAMMER = '🔨';
+        let gameOver = false;
+
+        function createHouses() {
+            for (let i = 0; i < 9; i++) {
+                const house = document.createElement('div');
+                house.className = 'house';
+                house.dataset.index = i;
+                house.dataset.blockCount = '0';
+                house.textContent = HOUSE;
+                house.addEventListener('click', handleClick);
+                gameBoard.appendChild(house);
+                houses.push(house);
             }
             // Set 1 random house to OLD_HOUSE
             const randomIndex = Math.floor(Math.random() * 9);
@@ -8,4 +72,52 @@ house);
         function startConstruction() {
             if (gameOver) return;
             const availableHouses = houses.filter(house => house.textContent === HOUSE);
-            if (avai
+            if (availableHouses.length > 0) {
+                const randomHouse = availableHouses[Math.floor(Math.random() * availableHouses.length)];
+                randomHouse.textContent += HAMMER;
+                randomHouse.dataset.constructionTime = Date.now();
+            }
+        }
+
+        function handleClick(event) {
+            if (gameOver) return;
+            const house = event.target;
+            if (house.textContent.includes(HAMMER)) {
+                house.textContent = HOUSE;
+                let blockCount = parseInt(house.dataset.blockCount) + 1;
+                house.dataset.blockCount = blockCount;
+                if (blockCount >= 3) {
+                    house.textContent = OLD_HOUSE;
+                }
+                checkGameOver();
+            }
+        }
+
+        function gameLoop() {
+            if (gameOver) return;
+            houses.forEach(house => {
+                if (house.textContent.includes(HAMMER) && Date.now() - house.dataset.constructionTime > 2000) {
+                    house.textContent = APARTMENT;
+                    checkGameOver();
+                }
+            });
+            startConstruction();
+        }
+
+        function checkGameOver() {
+            if (houses.every(house => house.textContent === OLD_HOUSE)) {
+                messageElement.textContent = "Congrats. You've maintained neighborhood character and blocked newcomers!";
+                gameOver = true;
+                clearInterval(gameInterval);
+            } else if (houses.filter(house => house.textContent === APARTMENT).length === 8) {
+                messageElement.textContent = "You lose! The neighborhood is ruined and there are too many people.";
+                gameOver = true;
+                clearInterval(gameInterval);
+            }
+        }
+
+        createHouses();
+        const gameInterval = setInterval(gameLoop, 1000);
+    </script>
+</body>
+</html>
