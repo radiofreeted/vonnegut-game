@@ -14,20 +14,34 @@
         }
         #game-board {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 10px;
             margin-top: 20px;
         }
-        .house {
+        .plot {
             width: 100px;
             height: 100px;
-            background-color: #f0f0f0;
             display: flex;
             justify-content: center;
             align-items: center;
             font-size: 50px;
             cursor: pointer;
             user-select: none;
+            position: relative;
+        }
+        .plot:nth-child(-n+4) {
+            background: linear-gradient(to bottom, #808080 50%, #4CAF50 50%);
+        }
+        .plot:nth-child(n+5) {
+            background: linear-gradient(to bottom, #4CAF50 50%, #808080 50%);
+        }
+        .plot .house {
+            position: absolute;
+            z-index: 1;
+        }
+        .plot .overlay {
+            position: absolute;
+            z-index: 2;
         }
         #message {
             margin-top: 20px;
@@ -36,88 +50,134 @@
             text-align: center;
             color: #ff0000;
         }
+        #start-button, #play-again-button {
+            margin-top: 20px;
+            font-size: 18px;
+            padding: 10px 20px;
+        }
+        #play-again-button {
+            display: none;
+        }
     </style>
 </head>
 <body>
     <h1>Discretionary Review: The Game</h1>
     <div id="game-board"></div>
     <div id="message"></div>
+    <button id="start-button">Start Game</button>
+    <button id="play-again-button">Play Again</button>
 
     <script>
         const gameBoard = document.getElementById('game-board');
         const messageElement = document.getElementById('message');
-        const houses = [];
+        const startButton = document.getElementById('start-button');
+        const playAgainButton = document.getElementById('play-again-button');
+        const plots = [];
         const HOUSE = '🏡';
         const APARTMENT = '🏢';
-        const OLD_HOUSE = '🏚️';
         const HAMMER = '🔨';
-        let gameOver = false;
+        const FILE = '📁';
+        const REVIEW = '🗂️';
+        let gameInterval;
+        let gameActive = false;
 
-        function createHouses() {
-            for (let i = 0; i < 9; i++) {
-                const house = document.createElement('div');
+        function createPlots() {
+            for (let i = 0; i < 8; i++) {
+                const plot = document.createElement('div');
+                plot.className = 'plot';
+                const house = document.createElement('span');
                 house.className = 'house';
-                house.dataset.index = i;
-                house.dataset.blockCount = '0';
                 house.textContent = HOUSE;
-                house.addEventListener('click', handleClick);
-                gameBoard.appendChild(house);
-                houses.push(house);
+                plot.appendChild(house);
+                const overlay = document.createElement('span');
+                overlay.className = 'overlay';
+                plot.appendChild(overlay);
+                plot.addEventListener('click', handleClick);
+                gameBoard.appendChild(plot);
+                plots.push(plot);
             }
-            // Set 1 random house to OLD_HOUSE
-            const randomIndex = Math.floor(Math.random() * 9);
-            houses[randomIndex].textContent = OLD_HOUSE;
         }
 
         function startConstruction() {
-            if (gameOver) return;
-            const availableHouses = houses.filter(house => house.textContent === HOUSE);
-            if (availableHouses.length > 0) {
-                const randomHouse = availableHouses[Math.floor(Math.random() * availableHouses.length)];
-                randomHouse.textContent += HAMMER;
-                randomHouse.dataset.constructionTime = Date.now();
+            const availablePlots = plots.filter(plot => !plot.dataset.played && !plot.dataset.underConstruction);
+            if (availablePlots.length > 0) {
+                const randomPlot = availablePlots[Math.floor(Math.random() * availablePlots.length)];
+                randomPlot.querySelector('.overlay').textContent = HAMMER + FILE;
+                randomPlot.dataset.underConstruction = 'true';
+                randomPlot.dataset.constructionStart = Date.now();
             }
+            checkGameOver();
         }
 
         function handleClick(event) {
-            if (gameOver) return;
-            const house = event.target;
-            if (house.textContent.includes(HAMMER)) {
-                house.textContent = HOUSE;
-                let blockCount = parseInt(house.dataset.blockCount) + 1;
-                house.dataset.blockCount = blockCount;
-                if (blockCount >= 3) {
-                    house.textContent = OLD_HOUSE;
+            if (!gameActive) return;
+            const plot = event.currentTarget;
+            if (plot.dataset.underConstruction === 'true' && !plot.dataset.played) {
+                const timePassed = Date.now() - plot.dataset.constructionStart;
+                if (timePassed <= 1000) {
+                    plot.querySelector('.overlay').textContent = REVIEW;
+                    setTimeout(() => {
+                        plot.querySelector('.overlay').textContent = '';
+                    }, 1000);
+                    plot.dataset.played = 'true';
+                    delete plot.dataset.underConstruction;
                 }
-                checkGameOver();
             }
-        }
-
-        function gameLoop() {
-            if (gameOver) return;
-            houses.forEach(house => {
-                if (house.textContent.includes(HAMMER) && Date.now() - house.dataset.constructionTime > 2000) {
-                    house.textContent = APARTMENT;
-                    checkGameOver();
-                }
-            });
-            startConstruction();
         }
 
         function checkGameOver() {
-            if (houses.every(house => house.textContent === OLD_HOUSE)) {
-                messageElement.textContent = "Congrats. You've maintained neighborhood character and blocked newcomers!";
-                gameOver = true;
+            const activePlots = plots.filter(plot => !plot.dataset.played);
+            if (activePlots.length === 0) {
+                gameActive = false;
                 clearInterval(gameInterval);
-            } else if (houses.filter(house => house.textContent === APARTMENT).length === 8) {
-                messageElement.textContent = "You lose! The neighborhood is ruined and there are too many people.";
-                gameOver = true;
-                clearInterval(gameInterval);
+                if (plots.every(plot => plot.querySelector('.house').textContent === HOUSE)) {
+                    messageElement.textContent = "You win. You have maintained neighborhood character.";
+                } else {
+                    messageElement.textContent = "You lose. You have cast shadows on my roof deck and our neighborhood will never be the same. Don't you know San Francisco is full already?";
+                }
+                playAgainButton.style.display = 'block';
             }
         }
 
-        createHouses();
-        const gameInterval = setInterval(gameLoop, 1000);
+        function updateConstructions() {
+            plots.forEach(plot => {
+                if (plot.dataset.underConstruction === 'true' && !plot.dataset.played) {
+                    const timePassed = Date.now() - plot.dataset.constructionStart;
+                    if (timePassed > 1000) {
+                        plot.querySelector('.house').textContent = APARTMENT;
+                        plot.querySelector('.overlay').textContent = '';
+                        plot.dataset.played = 'true';
+                        delete plot.dataset.underConstruction;
+                    }
+                }
+            });
+        }
+
+        function startGame() {
+            gameActive = true;
+            messageElement.textContent = '';
+            startButton.style.display = 'none';
+            gameInterval = setInterval(() => {
+                updateConstructions();
+                startConstruction();
+            }, 2000);
+        }
+
+        function resetGame() {
+            plots.forEach(plot => {
+                plot.querySelector('.house').textContent = HOUSE;
+                plot.querySelector('.overlay').textContent = '';
+                delete plot.dataset.played;
+                delete plot.dataset.underConstruction;
+            });
+            messageElement.textContent = '';
+            playAgainButton.style.display = 'none';
+            startButton.style.display = 'block';
+        }
+
+        createPlots();
+        startButton.addEventListener('click', startGame);
+        playAgainButton.addEventListener('click', resetGame);
     </script>
 </body>
 </html>
