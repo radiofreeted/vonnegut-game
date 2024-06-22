@@ -68,9 +68,11 @@
         const gameOverScreen = document.getElementById('gameOverScreen');
         const finalScoreElement = document.getElementById('finalScore');
 
-        const GERALD_SIZE = 60;
-        const OTTO_SIZE = 50;
-        const LASAGNA_SIZE = 40;
+        let scaleFactor;
+        let GERALD_SIZE;
+        let OTTO_SIZE;
+        let LASAGNA_SIZE;
+        let OTTO_SPEED;
 
         let gerald = { x: 0, y: 0 };
         let otto = { x: 0, y: 0 };
@@ -124,7 +126,17 @@
             </svg>
         `);
 
+        function calculateScaleFactor() {
+            const screenSize = Math.min(window.innerWidth, window.innerHeight);
+            scaleFactor = screenSize / 500; // Base scale on a 500px reference
+            GERALD_SIZE = 60 * scaleFactor;
+            OTTO_SIZE = 50 * scaleFactor;
+            LASAGNA_SIZE = 40 * scaleFactor;
+            OTTO_SPEED = 2 * scaleFactor;
+        }
+
         function startGame() {
+            calculateScaleFactor();
             canvas.width = window.innerWidth - 20;
             canvas.height = window.innerHeight - 20;
             gerald = { x: canvas.width / 2, y: canvas.height / 2 };
@@ -150,8 +162,8 @@
                 const dy = gerald.y - otto.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 if (distance > 1) {
-                    otto.x += (dx / distance) * 2;
-                    otto.y += (dy / distance) * 2;
+                    otto.x += (dx / distance) * OTTO_SPEED;
+                    otto.y += (dy / distance) * OTTO_SPEED;
                 }
             }
 
@@ -211,6 +223,7 @@
         }, { passive: false });
 
         window.addEventListener('resize', () => {
+            calculateScaleFactor();
             canvas.width = window.innerWidth - 20;
             canvas.height = window.innerHeight - 20;
         });
