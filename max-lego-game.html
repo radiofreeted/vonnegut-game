@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lego Pattern Matching Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        #pattern-card, #building-area {
+            width: 300px;
+            height: 300px;
+            border: 2px solid #333;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 2px;
+            background-color: #ddd;
+            padding: 10px;
+        }
+        .block {
+            border-radius: 2px;
+            cursor: pointer;
+            position: relative;
+        }
+        .block::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            right: 2px;
+            height: 4px;
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 1px;
+        }
+        #block-palette {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .palette-block {
+            width: 40px;
+            height: 40px;
+            border-radius: 2px;
+            cursor: pointer;
+            position: relative;
+        }
+        .palette-block::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            right: 2px;
+            height: 4px;
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 1px;
+        }
+        #check-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        #check-button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1>Lego Pattern Matching Game</h1>
+        <div id="pattern-card"></div>
+        <div id="building-area"></div>
+        <div id="block-palette"></div>
+        <button id="check-button">Check Pattern</button>
+    </div>
+
+    <script>
+        const colors = ['#FF0000', '#0000FF', '#008000', '#FFFF00', '#FFA500', '#A52A2A'];
+        const patternCard = document.getElementById('pattern-card');
+        const buildingArea = document.getElementById('building-area');
+        const blockPalette = document.getElementById('block-palette');
+        const checkButton = document.getElementById('check-button');
+        let selectedColor = null;
+
+        function createGrid(container) {
+            for (let i = 0; i < 25; i++) {
+                const block = document.createElement('div');
+                block.classList.add('block');
+                container.appendChild(block);
+            }
+        }
+
+        function generatePattern() {
+            const blocks = patternCard.querySelectorAll('.block');
+            blocks.forEach(block => {
+                if (Math.random() > 0.3) {
+                    block.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                } else {
+                    block.style.backgroundColor = 'transparent';
+                }
+            });
+        }
+
+        function createPalette() {
+            colors.forEach(color => {
+                const block = document.createElement('div');
+                block.classList.add('palette-block');
+                block.style.backgroundColor = color;
+                block.addEventListener('click', () => {
+                    selectedColor = color;
+                });
+                blockPalette.appendChild(block);
+            });
+        }
+
+        function setupBuildingArea() {
+            const blocks = buildingArea.querySelectorAll('.block');
+            blocks.forEach(block => {
+                block.addEventListener('click', () => {
+                    if (selectedColor) {
+                        block.style.backgroundColor = selectedColor;
+                    }
+                });
+            });
+        }
+
+        function checkPattern() {
+            const patternBlocks = patternCard.querySelectorAll('.block');
+            const buildingBlocks = buildingArea.querySelectorAll('.block');
+            let correct = true;
+
+            for (let i = 0; i < patternBlocks.length; i++) {
+                if (patternBlocks[i].style.backgroundColor !== buildingBlocks[i].style.backgroundColor) {
+                    correct = false;
+                    break;
+                }
+            }
+
+            alert(correct ? 'Correct! You matched the Lego pattern!' : 'Incorrect. Try again!');
+        }
+
+        createGrid(patternCard);
+        createGrid(buildingArea);
+        generatePattern();
+        createPalette();
+        setupBuildingArea();
+
+        checkButton.addEventListener('click', checkPattern);
+    </script>
+</body>
+</html>
