@@ -69,7 +69,7 @@
             background-color: rgba(255, 255, 255, 0.3);
             border-radius: 1px;
         }
-        #check-button {
+        #check-button, #clear-button {
             margin-top: 20px;
             padding: 10px 20px;
             font-size: 16px;
@@ -79,8 +79,14 @@
             border: none;
             border-radius: 4px;
         }
-        #check-button:hover {
+        #check-button:hover, #clear-button:hover {
             background-color: #45a049;
+        }
+        #clear-button {
+            background-color: #f44336;
+        }
+        #clear-button:hover {
+            background-color: #d32f2f;
         }
     </style>
 </head>
@@ -91,6 +97,7 @@
         <div id="building-area"></div>
         <div id="block-palette"></div>
         <button id="check-button">Check Pattern</button>
+        <button id="clear-button">Clear Selected</button>
     </div>
 
     <script>
@@ -99,6 +106,7 @@
         const buildingArea = document.getElementById('building-area');
         const blockPalette = document.getElementById('block-palette');
         const checkButton = document.getElementById('check-button');
+        const clearButton = document.getElementById('clear-button');
         let selectedColor = null;
 
         function createGrid(container) {
@@ -136,7 +144,9 @@
             const blocks = buildingArea.querySelectorAll('.block');
             blocks.forEach(block => {
                 block.addEventListener('click', () => {
-                    if (selectedColor) {
+                    if (selectedColor === 'clear') {
+                        block.style.backgroundColor = 'transparent';
+                    } else if (selectedColor) {
                         block.style.backgroundColor = selectedColor;
                     }
                 });
@@ -149,7 +159,11 @@
             let correct = true;
 
             for (let i = 0; i < patternBlocks.length; i++) {
-                if (patternBlocks[i].style.backgroundColor !== buildingBlocks[i].style.backgroundColor) {
+                const patternColor = patternBlocks[i].style.backgroundColor;
+                const buildingColor = buildingBlocks[i].style.backgroundColor;
+                
+                if (patternColor === '' && buildingColor !== 'transparent' ||
+                    patternColor !== '' && patternColor !== buildingColor) {
                     correct = false;
                     break;
                 }
@@ -157,6 +171,10 @@
 
             alert(correct ? 'Correct! You matched the Lego pattern!' : 'Incorrect. Try again!');
         }
+
+        clearButton.addEventListener('click', () => {
+            selectedColor = 'clear';
+        });
 
         createGrid(patternCard);
         createGrid(buildingArea);
