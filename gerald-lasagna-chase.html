@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gerald's Lasagna Chase</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        #gameCanvas {
+            border: 2px solid #FFA500;
+            background-color: white;
+        }
+        #gameUI {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #FFA500;
+            font-size: 24px;
+        }
+        #startScreen, #gameOverScreen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+        }
+        button {
+            font-size: 1.2em;
+            padding: 10px 20px;
+            background: #FFA500;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="gameUI">Score: <span id="score">0</span></div>
+    <div id="startScreen">
+        <h1>Gerald's Lasagna Chase</h1>
+        <p>Help Gerald collect lasagna while avoiding Otto the Chihuahua.</p>
+        <button onclick="startGame()">Start Game</button>
+    </div>
+    <div id="gameOverScreen" style="display: none;">
+        <h2>Game Over!</h2>
+        <p>Final Score: <span id="finalScore"></span></p>
+        <button onclick="startGame()">Play Again</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const startScreen = document.getElementById('startScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const finalScoreElement = document.getElementById('finalScore');
+
+        const GERALD_SIZE = 60;
+        const OTTO_SIZE = 50;
+        const LASAGNA_SIZE = 40;
+
+        let gerald = { x: 0, y: 0 };
+        let otto = { x: 0, y: 0 };
+        let lasagna = { x: 0, y: 0, visible: false };
+        let score = 0;
+        let gameOver = false;
+        let ottoPaused = false;
+        let lasagnaTimer = 0;
+
+        const geraldImg = new Image();
+        geraldImg.src = 'data:image/svg+xml,' + encodeURIComponent(`
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+                <ellipse cx="100" cy="120" rx="70" ry="50" fill="#FFA500" />
+                <circle cx="100" cy="70" r="40" fill="#FFA500" />
+                <polygon points="65,20 85,70 45,70" fill="#FFA500" />
+                <polygon points="135,20 155,70 115,70" fill="#FFA500" />
+                <circle cx="85" cy="65" r="8" fill="#FFFFFF" />
+                <circle cx="115" cy="65" r="8" fill="#FFFFFF" />
+                <circle cx="85" cy="65" r="4" fill="#000000" />
+                <circle cx="115" cy="65" r="4" fill="#000000" />
+                <polygon points="100,75 95,80 105,80" fill="#FFC0CB" />
+                <path d="M95,85 Q100,90 105,85" fill="none" stroke="#000000" stroke-width="2" />
+            </svg>
+        `);
+
+        const ottoImg = new Image();
+        ottoImg.src = 'data:image/svg+xml,' + encodeURIComponent(`
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+                <ellipse cx="100" cy="130" rx="50" ry="30" fill="#D2B48C" />
+                <circle cx="100" cy="80" r="35" fill="#D2B48C" />
+                <polygon points="75,50 65,80 85,75" fill="#D2B48C" />
+                <polygon points="125,50 135,80 115,75" fill="#D2B48C" />
+                <circle cx="85" cy="75" r="6" fill="#FFFFFF" />
+                <circle cx="115" cy="75" r="6" fill="#FFFFFF" />
+                <circle cx="85" cy="75" r="3" fill="#000000" />
+                <circle cx="115" cy="75" r="3" fill="#000000" />
+                <circle cx="100" cy="85" r="5" fill="#000000" />
+                <path d="M90,95 Q100,100 110,95" fill="none" stroke="#000000" stroke-width="2" />
+            </svg>
+        `);
+
+        const lasagnaImg = new Image();
+        lasagnaImg.src = 'data:image/svg+xml,' + encodeURIComponent(`
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+                <path d="M30,170 Q100,140 170,170 L150,100 Q100,80 50,100 Z" fill="#FFA500" />
+                <path d="M40,160 Q100,135 160,160" fill="none" stroke="#FFFFFF" stroke-width="5" />
+                <path d="M45,145 Q100,120 155,145" fill="none" stroke="#FFFFFF" stroke-width="5" />
+                <path d="M50,130 Q100,105 150,130" fill="none" stroke="#FFFFFF" stroke-width="5" />
+                <path d="M55,120 Q100,100 145,120" fill="#8B4513" />
+                <path d="M60,110 L70,105 L80,112 L90,106 L100,114 L110,107 L120,113 L130,108 L140,112" fill="none" stroke="#FFFACD" stroke-width="4" />
+            </svg>
+        `);
+
+        function startGame() {
+            canvas.width = window.innerWidth - 20;
+            canvas.height = window.innerHeight - 20;
+            gerald = { x: canvas.width / 2, y: canvas.height / 2 };
+            otto = { x: 0, y: 0 };
+            lasagna = { x: 0, y: 0, visible: false };
+            score = 0;
+            gameOver = false;
+            ottoPaused = false;
+            lasagnaTimer = 0;
+            startScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+            scoreElement.textContent = score;
+            requestAnimationFrame(gameLoop);
+        }
+
+        function gameLoop(timestamp) {
+            if (gameOver) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (!ottoPaused) {
+                const dx = gerald.x - otto.x;
+                const dy = gerald.y - otto.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance > 1) {
+                    otto.x += (dx / distance) * 2;
+                    otto.y += (dy / distance) * 2;
+                }
+            }
+
+            if (
+                Math.abs(gerald.x - otto.x) < GERALD_SIZE / 2 + OTTO_SIZE / 2 &&
+                Math.abs(gerald.y - otto.y) < GERALD_SIZE / 2 + OTTO_SIZE / 2
+            ) {
+                gameOver = true;
+                gameOverScreen.style.display = 'block';
+                finalScoreElement.textContent = score;
+                return;
+            }
+
+            if (
+                lasagna.visible &&
+                Math.abs(gerald.x - lasagna.x) < GERALD_SIZE / 2 + LASAGNA_SIZE / 2 &&
+                Math.abs(gerald.y - lasagna.y) < GERALD_SIZE / 2 + LASAGNA_SIZE / 2
+            ) {
+                score += 100;
+                scoreElement.textContent = score;
+                lasagna.visible = false;
+                ottoPaused = true;
+                setTimeout(() => {
+                    ottoPaused = false;
+                }, 3000);
+            }
+
+            lasagnaTimer++;
+            if (lasagnaTimer > Math.random() * 300 + 240) {
+                lasagna = {
+                    x: Math.random() * (canvas.width - LASAGNA_SIZE),
+                    y: Math.random() * (canvas.height - LASAGNA_SIZE),
+                    visible: true
+                };
+                lasagnaTimer = 0;
+            }
+
+            ctx.drawImage(geraldImg, gerald.x - GERALD_SIZE / 2, gerald.y - GERALD_SIZE / 2, GERALD_SIZE, GERALD_SIZE);
+            ctx.drawImage(ottoImg, otto.x - OTTO_SIZE / 2, otto.y - OTTO_SIZE / 2, OTTO_SIZE, OTTO_SIZE);
+
+            if (lasagna.visible) {
+                ctx.drawImage(lasagnaImg, lasagna.x - LASAGNA_SIZE / 2, lasagna.y - LASAGNA_SIZE / 2, LASAGNA_SIZE, LASAGNA_SIZE);
+            }
+
+            score++;
+            scoreElement.textContent = score;
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            gerald.x = touch.clientX - rect.left;
+            gerald.y = touch.clientY - rect.top;
+        }, { passive: false });
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth - 20;
+            canvas.height = window.innerHeight - 20;
+        });
+    </script>
+</body>
+</html>
