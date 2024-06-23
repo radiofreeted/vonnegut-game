@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lego Pattern Matching Game - Timed 4x4</title>
+    <title>Authentic Lego Pattern Matching Game - Perfectly Centered Studs</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -22,12 +22,12 @@
             gap: 20px;
         }
         #pattern-card, #building-area {
-            width: 240px;
-            height: 240px;
+            width: 320px;
+            height: 320px;
             border: 2px solid #333;
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            grid-template-rows: repeat(4, 1fr);
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, 1fr);
             gap: 2px;
             background-color: #ddd;
             padding: 10px;
@@ -36,16 +36,42 @@
             border-radius: 2px;
             cursor: pointer;
             position: relative;
+            display: grid;
+            gap: 2px;
+            padding: 2px;
         }
-        .block::before {
-            content: '';
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            right: 2px;
-            height: 4px;
+        .stud {
             background-color: rgba(255, 255, 255, 0.3);
-            border-radius: 1px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 7px;
+            font-weight: bold;
+            width: 24px;
+            height: 24px;
+            margin: auto;
+        }
+        .block-1x1 {
+            grid-column: span 1;
+            grid-row: span 1;
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr;
+        }
+        .block-1x2 {
+            grid-column: span 2;
+            grid-row: span 1;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr;
+        }
+        .block-2x2 {
+            grid-column: span 2;
+            grid-row: span 2;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+        }
+        .block.selected {
+            outline: 2px solid black;
         }
         .block.match::after {
             content: '✅';
@@ -62,28 +88,6 @@
             left: 50%;
             transform: translate(-50%, -50%);
             font-size: 20px;
-        }
-        #block-palette {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        .palette-block {
-            width: 40px;
-            height: 40px;
-            border-radius: 2px;
-            cursor: pointer;
-            position: relative;
-        }
-        .palette-block::before {
-            content: '';
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            right: 2px;
-            height: 4px;
-            background-color: rgba(255, 255, 255, 0.3);
-            border-radius: 1px;
         }
         #check-button, #start-button {
             margin-top: 20px;
@@ -120,10 +124,9 @@
 </head>
 <body>
     <div id="game-container">
-        <h1>Lego Pattern Matching Game - Timed 4x4</h1>
+        <h1>Authentic Lego Pattern Matching Game</h1>
         <div id="pattern-card"></div>
         <div id="building-area"></div>
-        <div id="block-palette"></div>
         <button id="check-button" disabled>Check Pattern</button>
         <button id="start-button">Start Game</button>
         <div id="timer">04:00</div>
@@ -132,56 +135,97 @@
 
     <script>
         const colors = ['#FF0000', '#0000FF', '#008000', '#FFFF00', '#FFA500', '#A52A2A'];
+        const blockTypes = ['block-1x1', 'block-1x2', 'block-2x2'];
         const patternCard = document.getElementById('pattern-card');
         const buildingArea = document.getElementById('building-area');
-        const blockPalette = document.getElementById('block-palette');
         const checkButton = document.getElementById('check-button');
         const startButton = document.getElementById('start-button');
         const timerDisplay = document.getElementById('timer');
         const messageDisplay = document.getElementById('message');
-        let selectedColor = null;
         let timeLeft = 240; // 4 minutes in seconds
         let timerInterval;
+        let selectedBlock = null;
 
-        function createGrid(container) {
-            for (let i = 0; i < 16; i++) {
-                const block = document.createElement('div');
-                block.classList.add('block');
-                container.appendChild(block);
+        function createBlock(size, color) {
+            const block = document.createElement('div');
+            block.classList.add('block', size);
+            block.style.backgroundColor = color;
+            
+            let studCount;
+            switch(size) {
+                case 'block-1x1': studCount = 1; break;
+                case 'block-1x2': studCount = 2; break;
+                case 'block-2x2': studCount = 4; break;
             }
+            
+            for (let i = 0; i < studCount; i++) {
+                const stud = document.createElement('div');
+                stud.classList.add('stud');
+                stud.textContent = 'MAXO';
+                stud.style.color = adjustColor(color, -30);
+                block.appendChild(stud);
+            }
+            return block;
+        }
+
+        function adjustColor(color, amount) {
+            return '#' + color.replace(/^#/, '').replace(/../g, color => ('0'+Math.min(255, Math.max(0, parseInt(color, 16) + amount)).toString(16)).substr(-2));
         }
 
         function generatePattern() {
-            const blocks = patternCard.querySelectorAll('.block');
-            blocks.forEach(block => {
-                if (Math.random() > 0.2) {
-                    block.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                } else {
-                    block.style.backgroundColor = '';
-                }
-            });
+            patternCard.innerHTML = '';
+            const pattern = [];
+            for (let i = 0; i < 64; i += 2) {
+                const size = blockTypes[Math.floor(Math.random() * blockTypes.length)];
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                const block = createBlock(size, color);
+                patternCard.appendChild(block);
+                pattern.push({ size, color });
+                
+                if (size === 'block-1x2') i++;
+                if (size === 'block-2x2') i += 3;
+            }
+            return pattern;
         }
 
-        function createPalette() {
-            colors.forEach(color => {
-                const block = document.createElement('div');
-                block.classList.add('palette-block');
-                block.style.backgroundColor = color;
-                block.addEventListener('click', () => {
-                    selectedColor = color;
-                });
-                blockPalette.appendChild(block);
-            });
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
         }
 
-        function setupBuildingArea() {
-            const blocks = buildingArea.querySelectorAll('.block');
-            blocks.forEach(block => {
+        function setupBuildingArea(pattern) {
+            buildingArea.innerHTML = '';
+            const shuffledPattern = shuffleArray([...pattern]);
+            shuffledPattern.forEach(({ size, color }) => {
+                const block = createBlock(size, color);
                 block.addEventListener('click', () => {
-                    if (selectedColor) {
-                        block.style.backgroundColor = selectedColor;
+                    if (selectedBlock === null) {
+                        selectedBlock = block;
+                        block.classList.add('selected');
+                    } else if (selectedBlock === block) {
+                        selectedBlock.classList.remove('selected');
+                        selectedBlock = null;
+                    } else {
+                        const tempHTML = selectedBlock.innerHTML;
+                        const tempColor = selectedBlock.style.backgroundColor;
+                        const tempClass = selectedBlock.className;
+                        
+                        selectedBlock.innerHTML = block.innerHTML;
+                        selectedBlock.style.backgroundColor = block.style.backgroundColor;
+                        selectedBlock.className = block.className;
+                        
+                        block.innerHTML = tempHTML;
+                        block.style.backgroundColor = tempColor;
+                        block.className = tempClass;
+                        
+                        selectedBlock.classList.remove('selected');
+                        selectedBlock = null;
                     }
                 });
+                buildingArea.appendChild(block);
             });
         }
 
@@ -195,11 +239,8 @@
             });
 
             for (let i = 0; i < patternBlocks.length; i++) {
-                const patternColor = patternBlocks[i].style.backgroundColor;
-                const buildingColor = buildingBlocks[i].style.backgroundColor;
-
-                if (patternColor === buildingColor || 
-                    (patternColor === '' && (buildingColor === '' || buildingColor === 'transparent'))) {
+                if (patternBlocks[i].className === buildingBlocks[i].className &&
+                    patternBlocks[i].style.backgroundColor === buildingBlocks[i].style.backgroundColor) {
                     buildingBlocks[i].classList.add('match');
                 } else {
                     buildingBlocks[i].classList.add('mismatch');
@@ -217,14 +258,19 @@
         }
 
         function startGame() {
-            generatePattern();
+            const pattern = generatePattern();
+            setupBuildingArea(pattern);
             messageDisplay.textContent = 'Memorize the pattern! Game starts in 20 seconds...';
             startButton.disabled = true;
             
             setTimeout(() => {
-                const blocks = buildingArea.querySelectorAll('.block');
-                blocks.forEach(block => block.style.backgroundColor = '');
-                messageDisplay.textContent = 'Go! Build the pattern from memory.';
+                patternCard.querySelectorAll('.block').forEach(block => {
+                    block.style.backgroundColor = '';
+                    block.classList.remove('block-1x1', 'block-1x2', 'block-2x2');
+                    block.classList.add('block-1x1');
+                    block.innerHTML = '';
+                });
+                messageDisplay.textContent = 'Go! Rearrange the blocks to match the pattern from memory.';
                 checkButton.disabled = false;
                 startTimer();
             }, 20000);
@@ -244,11 +290,6 @@
                 }
             }, 1000);
         }
-
-        createGrid(patternCard);
-        createGrid(buildingArea);
-        createPalette();
-        setupBuildingArea();
 
         checkButton.addEventListener('click', checkPattern);
         startButton.addEventListener('click', startGame);
