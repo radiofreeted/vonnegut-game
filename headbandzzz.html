@@ -1,0 +1,138 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Charades Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        #game-container {
+            text-align: center;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: 80%;
+        }
+        #word-display {
+            font-size: 24px;
+            margin: 20px 0;
+            height: 30px;
+        }
+        #timer {
+            font-size: 36px;
+            margin: 20px 0;
+        }
+        button {
+            font-size: 18px;
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1>Charades</h1>
+        <div id="word-display"></div>
+        <div id="timer"></div>
+        <button id="start-button">Start Game</button>
+        <button id="next-button" style="display: none;">Next Word</button>
+    </div>
+
+    <script>
+        const words = [
+            // General
+            "Elephant", "Pizza", "Snowball fight", "Juggling", "Photographer",
+            "Dancing", "Fishing", "Painting a wall", "Riding a bicycle", "Playing piano",
+            "Cooking", "Swimming", "Reading a book", "Planting a tree", "Building a sandcastle",
+            
+            // Pop Culture
+            "Harry Potter", "Spider-Man", "Beyoncé", "Star Wars", "Taylor Swift",
+            "Game of Thrones", "The Avengers", "Breaking Bad", "Stranger Things", "Friends",
+            "Pokemon", "Billie Eilish", "Marvel", "Disney", "Netflix",
+            "TikTok", "Instagram", "YouTube", "Fortnite", "Minecraft",
+            
+            // Movies
+            "Titanic", "The Matrix", "Jurassic Park", "Avatar", "The Lion King",
+            "Frozen", "The Godfather", "Pulp Fiction", "Inception", "The Shawshank Redemption",
+            
+            // TV Shows
+            "The Office", "The Simpsons", "Black Mirror", "The Crown", "Squid Game",
+            "Bridgerton", "The Mandalorian", "Schitt's Creek", "Money Heist", "Peaky Blinders",
+            
+            // Music
+            "The Beatles", "Michael Jackson", "Madonna", "Elvis Presley", "Lady Gaga",
+            "Drake", "Ed Sheeran", "Adele", "Ariana Grande", "BTS",
+            
+            // Sports
+            "Soccer", "Basketball", "Tennis", "Golf", "Swimming",
+            "Usain Bolt", "Serena Williams", "LeBron James", "Cristiano Ronaldo", "Tom Brady",
+            
+            // Technology
+            "iPhone", "Google", "Facebook", "Amazon", "Tesla",
+            "Artificial Intelligence", "Virtual Reality", "Blockchain", "5G", "Cybersecurity"
+        ];
+
+        const wordDisplay = document.getElementById('word-display');
+        const timerDisplay = document.getElementById('timer');
+        const startButton = document.getElementById('start-button');
+        const nextButton = document.getElementById('next-button');
+
+        let currentWord = '';
+        let timerInterval;
+
+        function getRandomWord() {
+            return words[Math.floor(Math.random() * words.length)];
+        }
+
+        function updateTimer(seconds) {
+            timerDisplay.textContent = seconds;
+        }
+
+        function startCountdown(duration, display) {
+            let timer = duration;
+            updateTimer(timer);
+            timerInterval = setInterval(() => {
+                timer--;
+                updateTimer(timer);
+                if (timer <= 0) {
+                    clearInterval(timerInterval);
+                    wordDisplay.textContent = "Time's up!";
+                    nextButton.style.display = 'inline-block';
+                }
+            }, 1000);
+        }
+
+        function startGame() {
+            startButton.style.display = 'none';
+            wordDisplay.textContent = "Get ready...";
+            updateTimer(3);
+            
+            setTimeout(() => {
+                currentWord = getRandomWord();
+                wordDisplay.textContent = currentWord;
+                startCountdown(30, timerDisplay);
+            }, 3000);
+        }
+
+        function nextWord() {
+            clearInterval(timerInterval);
+            currentWord = getRandomWord();
+            wordDisplay.textContent = currentWord;
+            startCountdown(30, timerDisplay);
+            nextButton.style.display = 'none';
+        }
+
+        startButton.addEventListener('click', startGame);
+        nextButton.addEventListener('click', nextWord);
+    </script>
+</body>
+</html>
