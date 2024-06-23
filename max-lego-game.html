@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lego Pattern Matching Game</title>
+    <title>Lego Pattern Matching Game - Timed 4x4</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -22,12 +22,12 @@
             gap: 20px;
         }
         #pattern-card, #building-area {
-            width: 300px;
-            height: 300px;
+            width: 240px;
+            height: 240px;
             border: 2px solid #333;
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            grid-template-rows: repeat(5, 1fr);
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr);
             gap: 2px;
             background-color: #ddd;
             padding: 10px;
@@ -85,7 +85,7 @@
             background-color: rgba(255, 255, 255, 0.3);
             border-radius: 1px;
         }
-        #check-button, #clear-button, #new-pattern-button {
+        #check-button, #start-button {
             margin-top: 20px;
             padding: 10px 20px;
             font-size: 16px;
@@ -100,29 +100,34 @@
         #check-button:hover {
             background-color: #45a049;
         }
-        #clear-button {
-            background-color: #f44336;
-        }
-        #clear-button:hover {
-            background-color: #d32f2f;
-        }
-        #new-pattern-button {
+        #start-button {
             background-color: #2196F3;
         }
-        #new-pattern-button:hover {
+        #start-button:hover {
             background-color: #1e88e5;
+        }
+        #timer {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        #message {
+            font-size: 18px;
+            margin-top: 20px;
+            text-align: center;
         }
     </style>
 </head>
 <body>
     <div id="game-container">
-        <h1>Lego Pattern Matching Game</h1>
+        <h1>Lego Pattern Matching Game - Timed 4x4</h1>
         <div id="pattern-card"></div>
         <div id="building-area"></div>
         <div id="block-palette"></div>
-        <button id="check-button">Check Pattern</button>
-        <button id="clear-button">Clear Selected</button>
-        <button id="new-pattern-button">New Pattern</button>
+        <button id="check-button" disabled>Check Pattern</button>
+        <button id="start-button">Start Game</button>
+        <div id="timer">04:00</div>
+        <div id="message"></div>
     </div>
 
     <script>
@@ -131,12 +136,15 @@
         const buildingArea = document.getElementById('building-area');
         const blockPalette = document.getElementById('block-palette');
         const checkButton = document.getElementById('check-button');
-        const clearButton = document.getElementById('clear-button');
-        const newPatternButton = document.getElementById('new-pattern-button');
+        const startButton = document.getElementById('start-button');
+        const timerDisplay = document.getElementById('timer');
+        const messageDisplay = document.getElementById('message');
         let selectedColor = null;
+        let timeLeft = 240; // 4 minutes in seconds
+        let timerInterval;
 
         function createGrid(container) {
-            for (let i = 0; i < 25; i++) {
+            for (let i = 0; i < 16; i++) {
                 const block = document.createElement('div');
                 block.classList.add('block');
                 container.appendChild(block);
@@ -146,7 +154,7 @@
         function generatePattern() {
             const blocks = patternCard.querySelectorAll('.block');
             blocks.forEach(block => {
-                if (Math.random() > 0.3) {
+                if (Math.random() > 0.2) {
                     block.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
                 } else {
                     block.style.backgroundColor = '';
@@ -170,9 +178,7 @@
             const blocks = buildingArea.querySelectorAll('.block');
             blocks.forEach(block => {
                 block.addEventListener('click', () => {
-                    if (selectedColor === 'clear') {
-                        block.style.backgroundColor = '';
-                    } else if (selectedColor) {
+                    if (selectedColor) {
                         block.style.backgroundColor = selectedColor;
                     }
                 });
@@ -201,33 +207,51 @@
                 }
             }
 
-            alert(correct ? 'Correct! You matched the Lego pattern!' : 'Incorrect. Try again!');
+            if (correct) {
+                clearInterval(timerInterval);
+                messageDisplay.textContent = 'Congratulations! You matched the pattern!';
+                checkButton.disabled = true;
+            } else {
+                messageDisplay.textContent = 'Not quite right. Keep trying!';
+            }
         }
 
-        function clearBuildingArea() {
-            const blocks = buildingArea.querySelectorAll('.block');
-            blocks.forEach(block => {
-                block.style.backgroundColor = '';
-                block.classList.remove('match', 'mismatch');
-            });
-        }
-
-        clearButton.addEventListener('click', () => {
-            selectedColor = 'clear';
-        });
-
-        newPatternButton.addEventListener('click', () => {
+        function startGame() {
             generatePattern();
-            clearBuildingArea();
-        });
+            messageDisplay.textContent = 'Memorize the pattern! Game starts in 20 seconds...';
+            startButton.disabled = true;
+            
+            setTimeout(() => {
+                const blocks = buildingArea.querySelectorAll('.block');
+                blocks.forEach(block => block.style.backgroundColor = '');
+                messageDisplay.textContent = 'Go! Build the pattern from memory.';
+                checkButton.disabled = false;
+                startTimer();
+            }, 20000);
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    checkButton.disabled = true;
+                    messageDisplay.textContent = 'Time\'s up! Game over.';
+                }
+            }, 1000);
+        }
 
         createGrid(patternCard);
         createGrid(buildingArea);
-        generatePattern();
         createPalette();
         setupBuildingArea();
 
         checkButton.addEventListener('click', checkPattern);
+        startButton.addEventListener('click', startGame);
     </script>
 </body>
 </html>
