@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Authentic Lego Pattern Matching Game - Perfectly Centered Studs</title>
+    <title>Lego Pattern Matching Game - Full Board Utilization</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -25,17 +25,22 @@
             width: 320px;
             height: 320px;
             border: 2px solid #333;
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            grid-template-rows: repeat(8, 1fr);
-            gap: 2px;
-            background-color: #ddd;
-            padding: 10px;
+            background-color: #A9A9A9;
+            position: relative;
+            overflow: hidden;
+        }
+        #brick-palette {
+            width: 320px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
         }
         .block {
             border-radius: 2px;
             cursor: pointer;
-            position: relative;
+            position: absolute;
             display: grid;
             gap: 2px;
             padding: 2px;
@@ -53,20 +58,20 @@
             margin: auto;
         }
         .block-1x1 {
-            grid-column: span 1;
-            grid-row: span 1;
+            width: 40px;
+            height: 40px;
             grid-template-columns: 1fr;
             grid-template-rows: 1fr;
         }
         .block-1x2 {
-            grid-column: span 2;
-            grid-row: span 1;
+            width: 80px;
+            height: 40px;
             grid-template-columns: 1fr 1fr;
             grid-template-rows: 1fr;
         }
         .block-2x2 {
-            grid-column: span 2;
-            grid-row: span 2;
+            width: 80px;
+            height: 80px;
             grid-template-columns: 1fr 1fr;
             grid-template-rows: 1fr 1fr;
         }
@@ -89,6 +94,13 @@
             transform: translate(-50%, -50%);
             font-size: 20px;
         }
+        .baseplate-stud {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background-color: #808080;
+            border-radius: 50%;
+        }
         #check-button, #start-button {
             margin-top: 20px;
             padding: 10px 20px;
@@ -110,11 +122,6 @@
         #start-button:hover {
             background-color: #1e88e5;
         }
-        #timer {
-            font-size: 24px;
-            font-weight: bold;
-            margin-top: 20px;
-        }
         #message {
             font-size: 18px;
             margin-top: 20px;
@@ -124,12 +131,12 @@
 </head>
 <body>
     <div id="game-container">
-        <h1>Authentic Lego Pattern Matching Game</h1>
+        <h1>Lego Pattern Matching Game</h1>
         <div id="pattern-card"></div>
         <div id="building-area"></div>
-        <button id="check-button" disabled>Check Pattern</button>
-        <button id="start-button">Start Game</button>
-        <div id="timer">04:00</div>
+        <div id="brick-palette"></div>
+        <button id="check-button">Check Pattern</button>
+        <button id="start-button">New Pattern</button>
         <div id="message"></div>
     </div>
 
@@ -138,12 +145,10 @@
         const blockTypes = ['block-1x1', 'block-1x2', 'block-2x2'];
         const patternCard = document.getElementById('pattern-card');
         const buildingArea = document.getElementById('building-area');
+        const brickPalette = document.getElementById('brick-palette');
         const checkButton = document.getElementById('check-button');
         const startButton = document.getElementById('start-button');
-        const timerDisplay = document.getElementById('timer');
         const messageDisplay = document.getElementById('message');
-        let timeLeft = 240; // 4 minutes in seconds
-        let timerInterval;
         let selectedBlock = null;
 
         function createBlock(size, color) {
@@ -172,61 +177,138 @@
             return '#' + color.replace(/^#/, '').replace(/../g, color => ('0'+Math.min(255, Math.max(0, parseInt(color, 16) + amount)).toString(16)).substr(-2));
         }
 
+        function createBaseplate(container) {
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    const stud = document.createElement('div');
+                    stud.classList.add('baseplate-stud');
+                    stud.style.top = `${row * 40 + 12}px`;
+                    stud.style.left = `${col * 40 + 12}px`;
+                    container.appendChild(stud);
+                }
+            }
+        }
+
         function generatePattern() {
             patternCard.innerHTML = '';
+            createBaseplate(patternCard);
             const pattern = [];
-            for (let i = 0; i < 64; i += 2) {
+            const grid = Array(8).fill().map(() => Array(8).fill(false));
+
+            function canPlace(row, col, width, height) {
+                if (row + height > 8 || col + width > 8) return false;
+                for (let i = 0; i < height; i++) {
+                    for (let j = 0; j < width; j++) {
+                        if (grid[row + i][col + j]) return false;
+                    }
+                }
+                return true;
+            }
+
+            function placeBlock(row, col, width, height) {
+                for (let i = 0; i < height; i++) {
+                    for (let j = 0; j < width; j++) {
+                        grid[row + i][col + j] = true;
+                    }
+                }
+            }
+
+            while (pattern.length < 20) {
                 const size = blockTypes[Math.floor(Math.random() * blockTypes.length)];
                 const color = colors[Math.floor(Math.random() * colors.length)];
-                const block = createBlock(size, color);
-                patternCard.appendChild(block);
-                pattern.push({ size, color });
-                
-                if (size === 'block-1x2') i++;
-                if (size === 'block-2x2') i += 3;
+                const [width, height] = size === 'block-1x1' ? [1, 1] : size === 'block-1x2' ? [2, 1] : [2, 2];
+
+                let placed = false;
+                for (let attempt = 0; attempt < 64; attempt++) {
+                    const row = Math.floor(Math.random() * (9 - height));
+                    const col = Math.floor(Math.random() * (9 - width));
+                    if (canPlace(row, col, width, height)) {
+                        placeBlock(row, col, width, height);
+                        const block = createBlock(size, color);
+                        block.style.top = `${row * 40}px`;
+                        block.style.left = `${col * 40}px`;
+                        patternCard.appendChild(block);
+                        pattern.push({ size, color, row, col });
+                        placed = true;
+                        break;
+                    }
+                }
+                if (!placed) break;
             }
+
             return pattern;
         }
 
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
+        function setupBuildingArea() {
+            buildingArea.innerHTML = '';
+            createBaseplate(buildingArea);
         }
 
-        function setupBuildingArea(pattern) {
-            buildingArea.innerHTML = '';
-            const shuffledPattern = shuffleArray([...pattern]);
-            shuffledPattern.forEach(({ size, color }) => {
+        function setupBrickPalette(pattern) {
+            brickPalette.innerHTML = '';
+            pattern.forEach(({ size, color }) => {
                 const block = createBlock(size, color);
-                block.addEventListener('click', () => {
-                    if (selectedBlock === null) {
-                        selectedBlock = block;
-                        block.classList.add('selected');
-                    } else if (selectedBlock === block) {
-                        selectedBlock.classList.remove('selected');
-                        selectedBlock = null;
-                    } else {
-                        const tempHTML = selectedBlock.innerHTML;
-                        const tempColor = selectedBlock.style.backgroundColor;
-                        const tempClass = selectedBlock.className;
-                        
-                        selectedBlock.innerHTML = block.innerHTML;
-                        selectedBlock.style.backgroundColor = block.style.backgroundColor;
-                        selectedBlock.className = block.className;
-                        
-                        block.innerHTML = tempHTML;
-                        block.style.backgroundColor = tempColor;
-                        block.className = tempClass;
-                        
-                        selectedBlock.classList.remove('selected');
-                        selectedBlock = null;
-                    }
-                });
-                buildingArea.appendChild(block);
+                block.style.position = 'static';
+                block.addEventListener('click', () => selectBrick(block));
+                brickPalette.appendChild(block);
             });
+        }
+
+        function selectBrick(block) {
+            if (selectedBlock) {
+                selectedBlock.classList.remove('selected');
+            }
+            selectedBlock = block;
+            block.classList.add('selected');
+        }
+
+        function placeBrick(event) {
+            const rect = buildingArea.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            const col = Math.floor(x / 40);
+            const row = Math.floor(y / 40);
+
+            if (selectedBlock) {
+                const size = selectedBlock.classList[1];
+                const [width, height] = size === 'block-1x1' ? [1, 1] : size === 'block-1x2' ? [2, 1] : [2, 2];
+
+                if (col + width <= 8 && row + height <= 8 && !checkOverlap(row, col, width, height)) {
+                    const newBlock = selectedBlock.cloneNode(true);
+                    newBlock.style.position = 'absolute';
+                    newBlock.style.top = `${row * 40}px`;
+                    newBlock.style.left = `${col * 40}px`;
+                    newBlock.addEventListener('click', moveBrick);
+                    buildingArea.appendChild(newBlock);
+                    selectedBlock.remove();
+                    selectedBlock = null;
+                }
+            }
+        }
+
+        function checkOverlap(row, col, width, height) {
+            const blocks = buildingArea.querySelectorAll('.block');
+            for (let block of blocks) {
+                const blockRow = parseInt(block.style.top) / 40;
+                const blockCol = parseInt(block.style.left) / 40;
+                const blockWidth = block.classList.contains('block-1x1') ? 1 : 2;
+                const blockHeight = block.classList.contains('block-2x2') ? 2 : 1;
+
+                if (!(row + height <= blockRow || blockRow + blockHeight <= row ||
+                      col + width <= blockCol || blockCol + blockWidth <= col)) {
+                    return true;  // Overlap detected
+                }
+            }
+            return false;  // No overlap
+        }
+
+        function moveBrick(event) {
+            if (selectedBlock) {
+                selectedBlock.classList.remove('selected');
+            }
+            selectedBlock = event.currentTarget;
+            selectedBlock.classList.add('selected');
+            event.stopPropagation();
         }
 
         function checkPattern() {
@@ -239,19 +321,23 @@
             });
 
             for (let i = 0; i < patternBlocks.length; i++) {
-                if (patternBlocks[i].className === buildingBlocks[i].className &&
-                    patternBlocks[i].style.backgroundColor === buildingBlocks[i].style.backgroundColor) {
-                    buildingBlocks[i].classList.add('match');
+                const patternBlock = patternBlocks[i];
+                const buildingBlock = buildingBlocks[i];
+                
+                if (buildingBlock && 
+                    patternBlock.className === buildingBlock.className &&
+                    patternBlock.style.backgroundColor === buildingBlock.style.backgroundColor &&
+                    patternBlock.style.top === buildingBlock.style.top &&
+                    patternBlock.style.left === buildingBlock.style.left) {
+                    buildingBlock.classList.add('match');
                 } else {
-                    buildingBlocks[i].classList.add('mismatch');
+                    if (buildingBlock) buildingBlock.classList.add('mismatch');
                     correct = false;
                 }
             }
 
             if (correct) {
-                clearInterval(timerInterval);
                 messageDisplay.textContent = 'Congratulations! You matched the pattern!';
-                checkButton.disabled = true;
             } else {
                 messageDisplay.textContent = 'Not quite right. Keep trying!';
             }
@@ -259,40 +345,17 @@
 
         function startGame() {
             const pattern = generatePattern();
-            setupBuildingArea(pattern);
-            messageDisplay.textContent = 'Memorize the pattern! Game starts in 20 seconds...';
-            startButton.disabled = true;
-            
-            setTimeout(() => {
-                patternCard.querySelectorAll('.block').forEach(block => {
-                    block.style.backgroundColor = '';
-                    block.classList.remove('block-1x1', 'block-1x2', 'block-2x2');
-                    block.classList.add('block-1x1');
-                    block.innerHTML = '';
-                });
-                messageDisplay.textContent = 'Go! Rearrange the blocks to match the pattern from memory.';
-                checkButton.disabled = false;
-                startTimer();
-            }, 20000);
+            setupBuildingArea();
+            setupBrickPalette(pattern);
+            messageDisplay.textContent = 'Place the bricks to match the pattern above.';
         }
 
-        function startTimer() {
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                const minutes = Math.floor(timeLeft / 60);
-                const seconds = timeLeft % 60;
-                timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    checkButton.disabled = true;
-                    messageDisplay.textContent = 'Time\'s up! Game over.';
-                }
-            }, 1000);
-        }
-
+        buildingArea.addEventListener('click', placeBrick);
         checkButton.addEventListener('click', checkPattern);
         startButton.addEventListener('click', startGame);
+
+        // Initialize the game
+        startGame();
     </script>
 </body>
 </html>
