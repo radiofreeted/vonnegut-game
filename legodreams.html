@@ -28,31 +28,136 @@
 
         const characters = [
             { name: 'Default', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 150">
-                <!-- Default character SVG code -->
+                <rect x="30" y="60" width="40" height="50" fill="#ff0000"/>
+                <text x="50" y="90" font-family="Arial Black, sans-serif" font-size="14" fill="white" text-anchor="middle">MAX</text>
+                <circle cx="50" cy="45" r="20" fill="#ffdb00"/>
+                <circle cx="43" cy="40" r="3" fill="#000000"/>
+                <circle cx="57" cy="40" r="3" fill="#000000"/>
+                <path d="M40 50 Q50 60 60 50" fill="none" stroke="#000000" stroke-width="2"/>
+                <path d="M40 25 L50 15 L60 25" fill="#000000" stroke="#000000" stroke-width="2"/>
+                <path d="M30 110 L30 140 L45 140 L45 110 L55 110 L55 140 L70 140 L70 110 Q50 105 30 110" fill="#0000ff"/>
+                <path d="M35 115 L40 115 M35 125 L40 125 M35 135 L40 135" stroke="#ffffff" stroke-width="2"/>
+                <path d="M60 115 L65 115 M60 125 L65 125 M60 135 L65 135" stroke="#ffffff" stroke-width="2"/>
+                <path d="M10 65 L25 65 L25 75 L10 75 Q5 70 10 65" fill="#ffdb00"/>
+                <path d="M90 65 L75 65 L75 75 L90 75 Q95 70 90 65" fill="#ffdb00"/>
             </svg>` },
             { name: 'Ninja', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 150">
-                <!-- Ninja character SVG code -->
+                <rect x="30" y="60" width="40" height="50" fill="#000000"/>
+                <circle cx="50" cy="45" r="20" fill="#000000"/>
+                <rect x="40" y="38" width="20" height="4" fill="#ffffff"/>
+                <rect x="30" y="110" width="15" height="30" fill="#000000"/>
+                <rect x="55" y="110" width="15" height="30" fill="#000000"/>
+                <rect x="10" y="65" width="20" height="10" fill="#000000"/>
+                <rect x="70" y="65" width="20" height="10" fill="#000000"/>
+                <rect x="85" y="30" width="5" height="60" fill="#cccccc"/>
             </svg>` },
             { name: 'Astronaut', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 150">
-                <!-- Astronaut character SVG code -->
+                <rect x="25" y="40" width="50" height="70" fill="#ffffff"/>
+                <rect x="30" y="20" width="40" height="40" rx="20" ry="20" fill="#ffffff" stroke="#000000" stroke-width="2"/>
+                <rect x="35" y="30" width="30" height="20" fill="#87CEEB"/>
+                <rect x="30" y="110" width="15" height="30" fill="#ffffff"/>
+                <rect x="55" y="110" width="15" height="30" fill="#ffffff"/>
+                <rect x="10" y="65" width="20" height="10" fill="#ffffff"/>
+                <rect x="70" y="65" width="20" height="10" fill="#ffffff"/>
+                <circle cx="50" cy="80" r="10" fill="#0B3D91"/>
+                <text x="50" y="84" font-family="Arial" font-size="10" fill="#ffffff" text-anchor="middle">NASA</text>
             </svg>` },
             { name: 'Pirate', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 150">
-                <!-- Pirate character SVG code -->
+                <rect x="30" y="60" width="40" height="50" fill="#8B4513"/>
+                <circle cx="50" cy="45" r="20" fill="#ffdb00"/>
+                <rect x="40" y="35" width="20" height="10" fill="#000000"/>
+                <circle cx="57" cy="40" r="3" fill="#000000"/>
+                <path d="M40 50 Q50 60 60 50" fill="none" stroke="#000000" stroke-width="2"/>
+                <rect x="30" y="110" width="15" height="30" fill="#8B4513"/>
+                <rect x="55" y="110" width="15" height="30" fill="#8B4513"/>
+                <rect x="10" y="65" width="20" height="10" fill="#ffdb00"/>
+                <rect x="70" y="65" width="20" height="10" fill="#ffdb00"/>
+                <path d="M30 25 Q50 10 70 25 L70 35 Q50 20 30 35 Z" fill="#000000"/>
+                <text x="50" y="32" font-family="Arial" font-size="15" fill="#ffffff" text-anchor="middle">☠</text>
             </svg>` },
             { name: 'Superhero', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 150">
-                <!-- Superhero character SVG code -->
+                <path d="M30 60 Q50 20 70 60 L70 110 Q50 130 30 110 Z" fill="#ffd700"/>
+                <rect x="30" y="60" width="40" height="50" fill="#800080"/>
+                <circle cx="50" cy="45" r="20" fill="#ffdb00"/>
+                <path d="M30 30 Q50 10 70 30" fill="#000000"/>
+                <path d="M35 25 L40 15 M45 23 L50 13 M55 25 L60 15" stroke="#ffd700" stroke-width="2"/>
+                <circle cx="43" cy="40" r="3" fill="#000000"/>
+                <circle cx="57" cy="40" r="3" fill="#000000"/>
+                <path d="M40 50 Q50 60 60 50" fill="none" stroke="#000000" stroke-width="2"/>
+                <rect x="30" y="110" width="15" height="30" fill="#008000"/>
+                <rect x="55" y="110" width="15" height="30" fill="#008000"/>
+                <rect x="10" y="65" width="20" height="10" fill="#800080"/>
+                <rect x="70" y="65" width="20" height="10" fill="#800080"/>
+                <text x="50" y="85" font-family="Arial Black, sans-serif" font-size="25" fill="#ffd700" text-anchor="middle">S</text>
             </svg>` }
         ];
 
         const backgrounds = [
-            { name: 'Beach', svg: `<!-- Beach SVG code -->`, music: 'beach.mp3' },
-            { name: 'Forest', svg: `<!-- Forest SVG code -->`, music: 'forest.mp3' },
-            { name: 'Space', svg: `<!-- Space SVG code -->`, music: 'space.mp3' },
-            { name: 'Ocean', svg: `<!-- Ocean SVG code -->`, music: 'ocean.mp3' },
-            { name: 'City', svg: `<!-- City SVG code -->`, music: 'city.mp3' }
+            { name: 'Beach', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+                <rect width="800" height="400" fill="#87CEEB"/>
+                <circle cx="700" cy="100" r="60" fill="#FFD700"/>
+                <path d="M0 300 Q200 280 400 300 Q600 320 800 300 V600 H0 Z" fill="#0077BE"/>
+                <path d="M0 350 Q200 330 400 350 Q600 370 800 350 V600 H0 Z" fill="#F4A460"/>
+                <path d="M600 350 C580 300 620 300 600 250 C580 200 620 200 600 150 L620 350 Z" fill="#8B4513"/>
+                <path d="M570 200 Q600 170 630 200 Q600 190 570 200 Z" fill="#228B22"/>
+                <path d="M550 170 Q600 140 650 170 Q600 160 550 170 Z" fill="#228B22"/>
+                <path d="M540 140 Q600 110 660 140 Q600 130 540 140 Z" fill="#228B22"/>
+            </svg>` },
+            { name: 'Forest', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+                <rect width="800" height="600" fill="#87CEEB"/>
+                <circle cx="700" cy="100" r="60" fill="#F0F0F0"/>
+                <path d="M0 200 L50 180 L100 220 L150 190 L200 230 L250 200 L300 240 L350 210 L400 250 L450 220 L500 260 L550 230 L600 270 L650 240 L700 280 L750 250 L800 290 V600 H0 Z" fill="#228B22"/>
+                <path d="M100 400 L50 600 H150 Z" fill="#006400"/>
+                <path d="M300 350 L250 600 H350 Z" fill="#006400"/>
+                <path d="M500 380 L450 600 H550 Z" fill="#006400"/>
+                <path d="M700 330 L650 600 H750 Z" fill="#006400"/>
+                <circle cx="200" cy="500" r="30" fill="#000000" opacity="0.7"/>
+                <circle cx="600" cy="520" r="30" fill="#000000" opacity="0.7"/>
+            </svg>` },
+            { name: 'Space', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+                <rect width="800" height="600" fill="#000033"/>
+                <circle cx="50" cy="50" r="2" fill="#FFFFFF"/>
+                <circle cx="150" cy="80" r="1" fill="#FFFFFF"/>
+                <circle cx="280" cy="40" r="2" fill="#FFFFFF"/>
+                <circle cx="450" cy="70" r="1" fill="#FFFFFF"/>
+                <circle cx="600" cy="30" r="2" fill="#FFFFFF"/>
+                <circle cx="750" cy="90" r="1" fill="#FFFFFF"/>
+                <circle cx="100" cy="200" r="2" fill="#FFFFFF"/>
+                <circle cx="300" cy="250" r="1" fill="#FFFFFF"/>
+                <circle cx="500" cy="180" r="2" fill="#FFFFFF"/>
+                <circle cx="700" cy="220" r="1" fill="#FFFFFF"/>
+                <circle cx="400" cy="300" r="150" fill="#0077BE"/>
+                <path d="M250 300 Q400 200 550 300 Q400 400 250 300 Z" fill="#228B22"/>
+                <path d="M300 200 Q400 150 500 200 Q400 250 300 200 Z" fill="#228B22"/>
+                <circle cx="400" cy="300" r="150" fill="none" stroke="#FFFFFF" stroke-width="5"/>
+            </svg>` },
+            { name: 'Ocean', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+                <rect width="800" height="300" fill="#87CEEB"/>
+                <circle cx="700" cy="100" r="60" fill="#FFD700"/>
+                <rect y="300" width="800" height="300" fill="#0077BE"/>
+                <path d="M200 350 Q400 330 600 350 L550 450 Q400 470 250 450 Z" fill="#8B4513"/>
+                <rect x="380" y="200" width="20" height="150" fill="#8B4513"/>
+                <path d="M400 200 Q480 250 400 300 Q320 250 400 200 Z" fill="#FFFFFF"/>
+                <path d="M400 200 L400 150 L420 160 L400 170 Z" fill="#000000"/>
+            </svg>` },
+            { name: 'City', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+                <rect width="800" height="600" fill="#87CEEB"/>
+                <circle cx="700" cy="100" r="60" fill="#FFD700"/>
+                <ellipse cx="200" cy="150" rx="60" ry="30" fill="#FFFFFF"/>
+                <ellipse cx="600" cy="100" rx="70" ry="40" fill="#FFFFFF"/>
+                <rect x="0" y="200" width="100" height="400" fill="#A9A9A9"/>
+                <rect x="120" y="300" width="80" height="300" fill="#D3D3D3"/>
+                <rect x="220" y="150" width="120" height="450" fill="#A9A9A9"/>
+                <rect x="360" y="250" width="90" height="350" fill="#D3D3D3"/>
+                <rect x="470" y="200" width="110" height="400" fill="#A9A9A9"/>
+                <rect x="600" y="100" width="80" height="500" fill="#D3D3D3"/>
+                <rect x="700" y="250" width="100" height="350" fill="#A9A9A9"/>
+                <path d="M20 220 h60 v40 h-60 Z M20 280 h60 v40 h-60 Z M20 340 h60 v40 h-60 Z M20 400 h60 v40 h-60 Z" fill="#FFFF00"/>
+                <path d="M240 170 h80 v40 h-80 Z M240 230 h80 v40 h-80 Z M240 290
+                <path d="M240 170 h80 v40 h-80 Z M240 230 h80 v40 h-80 Z M240 290 h80 v40 h-80 Z M240 350 h80 v40 h-80 Z" fill="#FFFF00"/>
+                <path d="M490 220 h70 v40 h-70 Z M490 280 h70 v40 h-70 Z M490 340 h70 v40 h-70 Z M490 400 h70 v40 h-70 Z" fill="#FFFF00"/>
+            </svg>` }
         ];
-
-        let currentMusic = new Audio();
 
         canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
@@ -71,14 +176,6 @@
             playerScore = 0;
             computerScore = 0;
             resetPositions();
-            playBackgroundMusic();
-        }
-
-        function playBackgroundMusic() {
-            currentMusic.pause();
-            currentMusic = new Audio(backgrounds[currentLevel - 1].music);
-            currentMusic.loop = true;
-            currentMusic.play();
         }
 
         function update() {
@@ -106,7 +203,6 @@
                             gameState = 'gameOver';
                         } else {
                             resetGame();
-                            playBackgroundMusic();
                         }
                     } else {
                         gameState = 'gameOver';
