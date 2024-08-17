@@ -2,93 +2,81 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LEGODREAMS Debug</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LEGODREAMS</title>
     <style>
-        body { margin: 0; padding: 0; overflow: hidden; }
-        #gameCanvas { position: absolute; top: 0; left: 0; }
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: Arial, sans-serif;
+        }
+        .game-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #87CEEB; /* Sky blue background */
+        }
+        .title {
+            font-size: 48px;
+            font-weight: bold;
+            color: #FFD700; /* Gold color */
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        .character {
+            width: 100px;
+            height: 150px;
+            background-color: #FF0000; /* Red body */
+            position: relative;
+            margin: 20px 0;
+        }
+        .character::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            left: 25px;
+            width: 50px;
+            height: 50px;
+            background-color: #FFD700; /* Gold head */
+            border-radius: 25px;
+        }
+        .character::after {
+            content: 'MAX';
+            position: absolute;
+            top: 60px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+        }
+        .level-indicator {
+            font-size: 24px;
+            margin: 20px 0;
+        }
+        .next-level {
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #4CAF50; /* Green */
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .next-level:hover {
+            background-color: #45a049;
+        }
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas"></canvas>
-    <script>
-        console.log("Script started");
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-
-        let gameState = 'loading';
-        let currentLevel = 1;
-
-        console.log("Variables initialized");
-
-        // Simplified character and background
-        const character = { svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="blue"/></svg>` };
-        const background = { svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="green"/></svg>` };
-
-        console.log("Character and background defined");
-
-        let characterImg = new Image();
-        let backgroundImg = new Image();
-
-        function loadImages() {
-            console.log("Loading images");
-            characterImg.onload = function() {
-                console.log("Character image loaded");
-                backgroundImg.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(background.svg);
-            };
-            backgroundImg.onload = function() {
-                console.log("Background image loaded");
-                gameState = 'title';
-                draw();
-            };
-            characterImg.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(character.svg);
-        }
-
-        canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            if (gameState === 'title') {
-                console.log("Game started");
-                gameState = 'playing';
-            }
-        });
-
-        function draw() {
-            console.log("Drawing: " + gameState);
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            if (gameState === 'loading') {
-                ctx.fillStyle = 'black';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = 'white';
-                ctx.font = '24px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText('Loading...', canvas.width / 2, canvas.height / 2);
-            } else if (gameState === 'title') {
-                ctx.fillStyle = 'black';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = 'white';
-                ctx.font = 'bold 48px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText('LEGODREAMS', canvas.width / 2, canvas.height / 2);
-                ctx.font = '24px Arial';
-                ctx.fillText('Tap to Start', canvas.width / 2, canvas.height / 2 + 50);
-            } else if (gameState === 'playing') {
-                ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
-                ctx.drawImage(characterImg, canvas.width / 2 - 25, canvas.height / 2 - 25, 50, 50);
-            }
-        }
-
-        function gameLoop() {
-            draw();
-            requestAnimationFrame(gameLoop);
-        }
-
-        console.log("Starting game loop and loading images");
-        loadImages();
-        gameLoop();
-    </script>
+    <div class="game-container">
+        <h1 class="title">LEGODREAMS</h1>
+        <div class="character"></div>
+        <p class="level-indicator">Level: 1</p>
+        <a href="#level2" class="next-level">Next Level</a>
+    </div>
 </body>
 </html>
